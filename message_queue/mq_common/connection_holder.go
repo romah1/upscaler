@@ -1,4 +1,4 @@
-package common
+package mq_common
 
 import (
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -21,7 +21,7 @@ func NewConnectionHolder(url string, params QueueParams) (*ConnectionHolder, err
 	}
 
 	q, err := ch.QueueDeclare(
-		params.QueueName,
+		params.Name,
 		false,
 		false,
 		false,

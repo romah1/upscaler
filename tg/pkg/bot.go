@@ -1,21 +1,35 @@
 package pkg
 
 import (
+	"encoding/json"
 	"fmt"
 	tg "github.com/Syfaro/telegram-bot-api"
+	"github.com/rabbitmq/amqp091-go"
+	"upscaler/message_queue/mq_common"
+	"upscaler/message_queue/mq_publisher"
 )
 
 type Bot struct {
-	Api *tg.BotAPI
+	api         *tg.BotAPI
+	mqPublisher *mq_publisher.Publisher
 }
 
-func NewBot(tgToken string) (*Bot, error) {
+func NewBot(tgToken string, queueUrl string, queueName string) (*Bot, error) {
 	api, err := tg.NewBotAPI(tgToken)
 	if err != nil {
 		return nil, err
 	}
+
+	mqPublisher, err := mq_publisher.NewPublisher(queueUrl, mq_common.QueueParams{
+		Name: queueName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &Bot{
-		Api: api,
+		api:         api,
+		mqPublisher: mqPublisher,
 	}, nil
 }
 
@@ -23,7 +37,7 @@ func (bot *Bot) Run() error {
 	u := tg.NewUpdate(0)
 	u.Timeout = 60
 
-	updates, err := bot.Api.GetUpdatesChan(u)
+	updates, err := bot.api.GetUpdatesChan(u)
 	if err != nil {
 		return err
 	}
@@ -53,12 +67,33 @@ func (bot *Bot) Run() error {
 }
 
 func (bot *Bot) handleUpscaleRequest(chatID ChatID, fileID FileID) {
-	url, err := bot.Api.GetFileDirectURL(fileID)
+	url, err := bot.api.GetFileDirectURL(fileID)
 	if err != nil {
-		bot.sendMessage(chatID, "Upscaling... please wait")
+		bot.sendInternalServerError(chatID)
+		return
 	}
-	fmt.Println(url)
-	bot.sendMessage(chatID, "Done!")
+
+	request := MQUpscaleRequest{
+		ChatID:   chatID,
+		ImageUrl: url,
+	}
+
+	body, err := json.Marshal(request)
+	if err != nil {
+		bot.sendInternalServerError(chatID)
+		return
+	}
+
+	err = bot.mqPublisher.Publish(amqp091.Publishing{
+		ContentType: "application/json",
+		Body:        body,
+	})
+	if err != nil {
+		bot.sendInternalServerError(chatID)
+		return
+	}
+
+	bot.sendMessage(chatID, "Upscaling... please wait")
 }
 
 func (bot *Bot) handleStart(chatID ChatID) {
@@ -71,8 +106,12 @@ func (bot *Bot) handleDefault(chatID ChatID) {
 
 func (bot *Bot) sendMessage(chatID ChatID, text string) {
 	msg := tg.NewMessage(chatID, text)
-	_, err := bot.Api.Send(msg)
+	_, err := bot.api.Send(msg)
 	if err != nil {
 		fmt.Printf("Failed to send message: %s", err.Error())
 	}
+}
+
+func (bot *Bot) sendInternalServerError(chatID ChatID) {
+	bot.sendMessage(chatID, "Internal Server Error")
 }

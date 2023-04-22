@@ -1,18 +1,18 @@
-package publisher
+package mq_publisher
 
 import (
 	"context"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"upscaler/tasks_queue/common"
+	"upscaler/message_queue/mq_common"
 )
 
 type Publisher struct {
-	connectionHolder *common.ConnectionHolder
+	connectionHolder *mq_common.ConnectionHolder
 	queue            *amqp.Queue
 }
 
-func NewSender(url string, params common.QueueParams) (*Publisher, error) {
-	mqConnectionHolder, err := common.NewConnectionHolder(url, params)
+func NewPublisher(url string, params mq_common.QueueParams) (*Publisher, error) {
+	mqConnectionHolder, err := mq_common.NewConnectionHolder(url, params)
 	if err != nil {
 		return nil, err
 	}
