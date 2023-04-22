@@ -23,16 +23,16 @@ func NewSender(url string, params common.QueueParams) (*Publisher, error) {
 	}, nil
 }
 
-func (sender *Publisher) Close() (channelErr error, connectionErr error) {
-	channelErr, connectionErr = sender.connectionHolder.Close()
+func (publisher *Publisher) Close() (channelErr error, connectionErr error) {
+	channelErr, connectionErr = publisher.connectionHolder.Close()
 	return
 }
 
-func (sender *Publisher) Publish(publishing amqp.Publishing) error {
-	err := sender.connectionHolder.Channel.PublishWithContext(
+func (publisher *Publisher) Publish(publishing amqp.Publishing) error {
+	err := publisher.connectionHolder.Channel.PublishWithContext(
 		context.TODO(),
 		"",
-		sender.connectionHolder.Queue.Name,
+		publisher.connectionHolder.Queue.Name,
 		false,
 		false,
 		publishing,

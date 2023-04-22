@@ -1,28 +1,41 @@
-package sender
+package receiver
 
 import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"upscaler/tasks_queue/common"
 )
 
-type Sender struct {
+type Receiver struct {
 	connectionHolder *common.ConnectionHolder
 	queue            *amqp.Queue
 }
 
-func NewSender(url string, params common.QueueParams) (*Sender, error) {
+func NewSender(url string, params common.QueueParams) (*Receiver, error) {
 	mqConnectionHolder, err := common.NewConnectionHolder(url, params)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Sender{
+	return &Receiver{
 		connectionHolder: mqConnectionHolder,
 		queue:            nil,
 	}, nil
 }
 
-func (sender *Sender) Close() (channelErr error, connectionErr error) {
-	channelErr, connectionErr = sender.connectionHolder.Close()
+func (receiver *Receiver) Close() (channelErr error, connectionErr error) {
+	channelErr, connectionErr = receiver.connectionHolder.Close()
 	return
+}
+
+func (receiver *Receiver) Receive() (<-chan amqp.Delivery, error) {
+	delivery, err := receiver.connectionHolder.Channel.Consume(
+		receiver.connectionHolder.Queue.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	return delivery, err
 }
