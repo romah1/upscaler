@@ -14,5 +14,5 @@ jobs:
         with:
           go-version: 1.19.1
 
-      - name: BuildTg
+      - name: Build
         run: go build -v ./...
