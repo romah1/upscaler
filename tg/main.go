@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"upscaler/base"
-	"upscaler/tg/pkg"
+	"upscaler/tg/tg_bot"
+	"upscaler/tg/tg_server"
 )
 
 func main() {
-	bot, err := pkg.NewBot(os.Getenv("TG_TOKEN"), os.Getenv("QUEUE_URL"), os.Getenv("QUEUE_NAME"))
+	bot, err := tg_bot.NewBot(os.Getenv("TG_TOKEN"), os.Getenv("QUEUE_URL"), os.Getenv("QUEUE_NAME"))
 	base.CheckErr(err)
 	defer bot.CloseConnections()
 
@@ -17,6 +18,7 @@ func main() {
 
 	fmt.Println("Bot is running...")
 
-	var forever chan struct{}
-	<-forever
+	engine := tg_server.SetupGinEngine(bot)
+	err = engine.Run(":8080")
+	base.CheckErr(err)
 }

@@ -1,4 +1,4 @@
-package pkg
+package tg_bot
 
 import (
 	"encoding/json"
@@ -70,6 +70,12 @@ func (bot *Bot) CloseConnections() {
 	bot.mqPublisher.Close()
 }
 
+func (bot *Bot) SendMessage(chatID ChatID, text string) error {
+	msg := tg.NewMessage(chatID, text)
+	_, err := bot.api.Send(msg)
+	return err
+}
+
 func (bot *Bot) handleUpscaleRequest(chatID ChatID, fileID FileID) {
 	url, err := bot.api.GetFileDirectURL(fileID)
 	if err != nil {
@@ -97,25 +103,24 @@ func (bot *Bot) handleUpscaleRequest(chatID ChatID, fileID FileID) {
 		return
 	}
 
-	bot.sendMessage(chatID, "Upscaling... please wait")
+	bot.sendMessage_(chatID, "Upscaling... please wait")
 }
 
 func (bot *Bot) handleStart(chatID ChatID) {
-	bot.sendMessage(chatID, "Hi, let's upscale your image")
+	bot.sendMessage_(chatID, "Hi, let's upscale your image")
 }
 
 func (bot *Bot) handleDefault(chatID ChatID) {
-	bot.sendMessage(chatID, "Unknown command...")
+	bot.sendMessage_(chatID, "Unknown command...")
 }
 
-func (bot *Bot) sendMessage(chatID ChatID, text string) {
-	msg := tg.NewMessage(chatID, text)
-	_, err := bot.api.Send(msg)
+func (bot *Bot) sendMessage_(chatID ChatID, text string) {
+	err := bot.SendMessage(chatID, text)
 	if err != nil {
 		fmt.Printf("Failed to send message: %s", err.Error())
 	}
 }
 
 func (bot *Bot) sendInternalServerError(chatID ChatID) {
-	bot.sendMessage(chatID, "Internal Server Error")
+	bot.sendMessage_(chatID, "Internal Server Error")
 }

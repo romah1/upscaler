@@ -10,7 +10,7 @@ type Receiver struct {
 	queue            *amqp.Queue
 }
 
-func NewSender(url string, params mq_common.QueueParams) (*Receiver, error) {
+func NewReceiver(url string, params mq_common.QueueParams) (*Receiver, error) {
 	mqConnectionHolder, err := mq_common.NewConnectionHolder(url, params)
 	if err != nil {
 		return nil, err
