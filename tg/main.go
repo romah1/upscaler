@@ -10,6 +10,7 @@ import (
 func main() {
 	bot, err := pkg.NewBot(os.Getenv("TG_TOKEN"), os.Getenv("QUEUE_URL"), os.Getenv("QUEUE_NAME"))
 	base.CheckErr(err)
+	defer bot.CloseConnections()
 
 	err = bot.Run()
 	base.CheckErr(err)

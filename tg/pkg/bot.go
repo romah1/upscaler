@@ -66,6 +66,10 @@ func (bot *Bot) Run() error {
 	return nil
 }
 
+func (bot *Bot) CloseConnections() {
+	bot.mqPublisher.Close()
+}
+
 func (bot *Bot) handleUpscaleRequest(chatID ChatID, fileID FileID) {
 	url, err := bot.api.GetFileDirectURL(fileID)
 	if err != nil {
