@@ -17,12 +17,22 @@ func NewClient(endpoint string) *Client {
 	}
 }
 
-func (client *Client) PostUpscalingFailed(body tg_server.Error) error {
+func (client *Client) PostUpscalingFailed(body tg_server.UpscalingFailedBody) error {
 	marshalledBody, err := json.Marshal(body)
 	if err != nil {
 		return err
 	}
 	url := client.apiEndpoint + "/upscaling_failed"
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshalledBody))
+	return err
+}
+
+func (client *Client) PostUpscalingFinished(body tg_server.UpscalingFinishedBody) error {
+	marshalledBody, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	url := client.apiEndpoint + "/upscaling_finished"
 	_, err = http.Post(url, "application/json", bytes.NewBuffer(marshalledBody))
 	return err
 }

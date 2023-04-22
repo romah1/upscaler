@@ -11,7 +11,7 @@ func SetupGinEngine(bot *tg_bot.Bot) *gin.Engine {
 	api := engine.Group("/api")
 
 	api.POST("/upscaling_failed", func(context *gin.Context) {
-		var body Error
+		var body UpscalingFailedBody
 		if err := context.ShouldBindJSON(&body); err != nil {
 			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			context.Abort()
@@ -19,6 +19,21 @@ func SetupGinEngine(bot *tg_bot.Bot) *gin.Engine {
 		}
 
 		err := bot.SendMessage(body.ChatID, body.Reason)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		context.JSON(http.StatusOK, "success")
+	})
+
+	api.POST("/upscaling_finished", func(context *gin.Context) {
+		var body UpscalingFinishedBody
+		if err := context.ShouldBindJSON(&body); err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			context.Abort()
+			return
+		}
+
+		err := bot.SendMessage(body.ChatID, body.URL)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}

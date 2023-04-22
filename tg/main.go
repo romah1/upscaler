@@ -19,6 +19,6 @@ func main() {
 	fmt.Println("Bot is running...")
 
 	engine := tg_server.SetupGinEngine(bot)
-	err = engine.Run(":8080")
+	err = engine.Run(":" + os.Getenv("TG_SERVER_PORT"))
 	base.CheckErr(err)
 }
